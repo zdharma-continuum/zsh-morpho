@@ -45,7 +45,7 @@ zstyle -s ':morpho' check-interval morpho_check_interval || morpho_check_interva
 # Marks a shell that runs a command (i.e. displays a prompt)
 # as active, so that the screen saver will be run only there
 -morpho-active() {
-    echo "$$\\n$(date +%s)" > /tmp/morpho-active-shell
+    echo "$$\\n$(date +%s)" >| /tmp/morpho-active-shell
 }
 
 # Called periodically
@@ -72,7 +72,10 @@ zstyle -s ':morpho' check-interval morpho_check_interval || morpho_check_interva
         local screen_saver args
         zstyle -s ':morpho' screen-saver screen_saver || screen_saver="zmorpho"
         zstyle -s ':morpho' arguments args || args="-s"
-        "$screen_saver" ${=args}
+
+        # Cannot use standard zle widgets (to e.g. clear the prompt)
+        # outside of zle, so instead rely on `sched -o`
+        sched -o +0 "$screen_saver" ${=args}
 
         # Ending screen saver means user was active
         -morpho-active
